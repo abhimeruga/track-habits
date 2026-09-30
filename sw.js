@@ -1,6 +1,6 @@
-const CACHE = 'daymark-shell-v1';
+const CACHE = 'daymark-shell-v2';
 const BASE = new URL('./', self.registration.scope);
-const SHELL = ['index.html', 'offline.html', 'styles.css', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'src/main.js', 'src/store.js', 'src/date.js', 'src/analytics.js', 'src/notifications.js'].map(path => new URL(path, BASE).href);
+const SHELL = ['index.html', 'offline.html', 'styles.css', 'theme.css', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'src/main.js', 'src/store.js', 'src/date.js', 'src/analytics.js', 'src/notifications.js'].map(path => new URL(path, BASE).href);
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL)).then(() => self.skipWaiting()));

@@ -19,6 +19,13 @@ test('unsupported backup schema is rejected', () => {
   assert.throws(()=>normalize({version:2,activities:[],todos:[],timetable:[]}),/not a Daymark version 1 backup/);
 });
 
+test('older weekday time blocks become repeating daily blocks without losing content', () => {
+  const backup = emptyState();
+  backup.timetable.push({id:'block-1',title:'Deep work',notes:'Project work',day:2,start:'09:00',end:'10:30',linkType:'activity',linkId:'a'});
+  const [block] = normalize(backup).timetable;
+  assert.deepEqual(block,{id:'block-1',title:'Deep work',notes:'Project work',start:'09:00',end:'10:30',linkType:'activity',linkId:'a'});
+});
+
 test('unreadable saved data is not overwritten by routine edits', () => {
   const records=new Map([[STORAGE_KEY,'{broken']]);
   globalThis.localStorage={getItem:key=>records.get(key) ?? null,setItem:(key,value)=>records.set(key,value)};

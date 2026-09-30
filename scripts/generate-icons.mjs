@@ -9,10 +9,11 @@ function chunk(type, data) { const name=Buffer.from(type), length=Buffer.alloc(4
 function insideRoundRect(x,y,left,top,right,bottom,r) { const cx=Math.max(left+r,Math.min(x,right-r)), cy=Math.max(top+r,Math.min(y,bottom-r)); return (x-cx)**2+(y-cy)**2<=r*r; }
 function nearSegment(x,y,x1,y1,x2,y2,width) { const dx=x2-x1,dy=y2-y1,t=Math.max(0,Math.min(1,((x-x1)*dx+(y-y1)*dy)/(dx*dx+dy*dy))); return Math.hypot(x-(x1+t*dx),y-(y1+t*dy))<=width/2; }
 function pixel(x,y) {
-  let color=[23,102,78,255];
-  if(insideRoundRect(x,y,144,156,368,372,28)) color=[247,248,244,255];
-  if(nearSegment(x,y,177,221,205,249,28)||nearSegment(x,y,205,249,259,191,28)||nearSegment(x,y,276,230,331,230,23)||nearSegment(x,y,182,294,330,294,23)) color=[23,102,78,255];
-  if(Math.hypot(x-367,y-150)<=53) color=[233,186,105,255];
+  let color=[17,17,19,255];
+  if(insideRoundRect(x,y,144,156,368,372,28)) color=[244,244,245,255];
+  if(nearSegment(x,y,177,221,205,249,28)||nearSegment(x,y,205,249,259,191,28)) color=[17,17,19,255];
+  if(nearSegment(x,y,276,230,331,230,23)||nearSegment(x,y,182,294,330,294,23)) color=[94,94,99,255];
+  if(Math.hypot(x-367,y-150)<=53) color=[168,168,173,255];
   return color;
 }
 function render(size) {
