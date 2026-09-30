@@ -19,11 +19,17 @@ test('unsupported backup schema is rejected', () => {
   assert.throws(()=>normalize({version:2,activities:[],todos:[],timetable:[]}),/not a Daymark version 1 backup/);
 });
 
-test('older weekday time blocks become repeating daily blocks without losing content', () => {
+test('older time blocks fill all six weekdays without losing content', () => {
   const backup = emptyState();
   backup.timetable.push({id:'block-1',title:'Deep work',notes:'Project work',day:2,start:'09:00',end:'10:30',linkType:'activity',linkId:'a'});
   const [block] = normalize(backup).timetable;
-  assert.deepEqual(block,{id:'block-1',title:'Deep work',notes:'Project work',start:'09:00',end:'10:30',linkType:'activity',linkId:'a'});
+  assert.deepEqual(block,{id:'block-1',title:'Deep work',notes:'Project work',start:'09:00',end:'10:30',days:[1,2,3,4,5,6],linkType:'activity',linkId:'a'});
+});
+
+test('selected timetable days survive backup normalization', () => {
+  const backup = emptyState();
+  backup.timetable.push({id:'block-2',title:'Study',start:'11:00',end:'12:00',days:[1,3,3,6,0,9]});
+  assert.deepEqual(normalize(backup).timetable[0].days,[1,3,6]);
 });
 
 test('unreadable saved data is not overwritten by routine edits', () => {

@@ -1,7 +1,8 @@
 import { dateKey, isValidDateKey } from './date.js';
+import { TIMETABLE_DAYS } from './timetable.js';
 
 export const STORAGE_KEY = 'daymark:data:v1';
-export const emptyState = () => ({ version: 1, activities: [], todos: [], timetable: [], activityHistory: {}, settings: { theme: 'dark', notificationsEnabled: false }, reminderLog: {} });
+export const emptyState = () => ({ version: 1, activities: [], todos: [], timetable: [], activityHistory: {}, settings: { theme: 'light', notificationsEnabled: false }, reminderLog: {} });
 const listeners = new Set();
 let state = emptyState();
 let persistenceError = '';
@@ -57,13 +58,13 @@ export function normalize(input) {
   base.todos = input.todos.filter(item => item && typeof item.id === 'string').map(item => ({
     id: item.id, title: cleanText(item.title).slice(0, 120), notes: cleanText(item.notes), bucket: item.bucket === 'week' ? 'week' : 'today', priority: ['low', 'medium', 'high'].includes(item.priority) ? item.priority : 'medium', dueDate: validDate(item.dueDate), time: validTime(item.time), createdOn: validDate(item.createdOn) || dateKey(), completedOn: validDate(item.completedOn), deletedOn: validDate(item.deletedOn), reminderEnabled: Boolean(item.reminderEnabled), reminderTime: validTime(item.reminderTime), alarmEnabled: Boolean(item.alarmEnabled)
   })).filter(item => item.title);
-  // Older backups included a weekday. The current timetable repeats every block daily.
-  base.timetable = input.timetable.filter(item => item && typeof item.id === 'string' && validTime(item.start) && validTime(item.end)).map(item => ({ id: item.id, title: cleanText(item.title).slice(0, 120), notes: cleanText(item.notes), start: item.start, end: item.end, linkType: ['activity', 'todo'].includes(item.linkType) ? item.linkType : '', linkId: cleanText(item.linkId).slice(0, 100) })).filter(item => item.title && item.start < item.end);
+  // Blocks saved before weekday selection repeated every day; keep them across all grid columns.
+  base.timetable = input.timetable.filter(item => item && typeof item.id === 'string' && validTime(item.start) && validTime(item.end)).map(item => ({ id: item.id, title: cleanText(item.title).slice(0, 120), notes: cleanText(item.notes), start: item.start, end: item.end, days: Array.isArray(item.days) ? [...new Set(item.days.filter(day => TIMETABLE_DAYS.includes(day)))].sort() : [...TIMETABLE_DAYS], linkType: ['activity', 'todo'].includes(item.linkType) ? item.linkType : '', linkId: cleanText(item.linkId).slice(0, 100) })).filter(item => item.title && item.start < item.end && item.days.length);
   if (input.activityHistory && typeof input.activityHistory === 'object') for (const [activityId, dates] of Object.entries(input.activityHistory)) {
     if (!dates || typeof dates !== 'object') continue;
     base.activityHistory[activityId] = Object.fromEntries(Object.entries(dates).filter(([day, done]) => isValidDateKey(day) && done === true));
   }
-  base.settings.theme = ['system', 'light', 'dark'].includes(input.settings?.theme) ? input.settings.theme : 'dark';
+  base.settings.theme = ['system', 'light', 'dark'].includes(input.settings?.theme) ? input.settings.theme : 'light';
   base.settings.notificationsEnabled = Boolean(input.settings?.notificationsEnabled);
   if (input.reminderLog && typeof input.reminderLog === 'object') base.reminderLog = Object.fromEntries(Object.entries(input.reminderLog).filter(([key, value]) => typeof key === 'string' && key.length < 200 && value === true));
   return base;

@@ -2,6 +2,7 @@ import { addDays, dateKey, formatDate, timeLabel, WEEKDAYS, weekDates, weekday }
 import { activeActivity, activeTodo, activityConsistency, completedActivity, dayStats, recentDays, scheduleOn, streak, weekStats } from './analytics.js';
 import { emptyState, exportData, getPersistenceError, getState, id, load, normalize, replace, subscribe, update } from './store.js';
 import { checkReminders, requestPermission, unlockAlarm } from './notifications.js';
+import { blocksAt, TIMETABLE_DAYS, timetableRows } from './timetable.js';
 
 const app = document.querySelector('#app');
 const today = () => dateKey();
@@ -34,11 +35,11 @@ function dashboard() {
   const state = getState(), day = today(), stats = dayStats(state, day);
   const activities = state.activities.filter(activeActivity).sort((a, b) => Number(scheduleOn(b, day)) - Number(scheduleOn(a, day)) || a.name.localeCompare(b.name));
   const todos = state.todos.filter(item => activeTodo(item) && !item.completedOn && (item.bucket === 'today' || (item.dueDate && item.dueDate <= day)) || activeTodo(item) && item.completedOn === day);
-  const upcoming = [...state.timetable].sort((a,b) => a.start.localeCompare(b.start)).slice(0, 4);
+  const upcoming = state.timetable.filter(item => item.days.includes(weekday(day))).sort((a,b) => a.start.localeCompare(b.start)).slice(0, 4);
   return `<div class="page dashboard"><div class="hero"><div><span class="eyebrow">${esc(formatDate(day, { weekday: 'long', month: 'long', day: 'numeric' }))}</span><h1>Make today count<span class="accent-dot">.</span></h1><p>A calm place to focus on what matters, one step at a time.</p><div class="hero-actions"><button class="button primary" data-action="add-todo">＋ Add todo</button><button class="button light" data-action="add-activity">＋ Add activity</button></div></div>${progress(stats.done, stats.total)}</div>
   <div class="metric-grid"><div class="metric"><span class="metric-icon mint">✦</span><span>Activities</span><strong>${stats.activityDone}<small> / ${stats.activityTotal}</small></strong><div class="mini-track"><span style="width:${stats.activityTotal ? stats.activityDone / stats.activityTotal * 100 : 0}%"></span></div></div><div class="metric"><span class="metric-icon peach">☑</span><span>Todos due today</span><strong>${stats.todoDone}<small> / ${stats.todoTotal}</small></strong><div class="mini-track peach-track"><span style="width:${stats.todoTotal ? stats.todoDone / stats.todoTotal * 100 : 0}%"></span></div></div><div class="metric"><span class="metric-icon lilac">↗</span><span>Pending today</span><strong>${Math.max(0, stats.total - stats.done)}</strong><small>things left on the plan</small></div></div>
   <div class="dashboard-grid"><section class="card">${sectionTitle('Your rhythm', 'All activities', `<a href="#activities" class="small-link">Manage ↗</a>`)}${activities.length ? `<div class="stack">${activities.map(item => activityRow(item, day, true)).join('')}</div>` : blank('No activities yet', 'Add an activity to see it here every day.', `<button class="button small" data-action="add-activity">Add activity</button>`)}</section><section class="card">${sectionTitle('Focus list', 'Today’s todos', `<a href="#todos" class="small-link">View all ↗</a>`)}${todos.length ? `<div class="stack">${todos.slice(0, 7).map(item => todoRow(item, true)).join('')}</div>` : blank('Your list is clear', 'Add a todo whenever something comes up.', `<button class="button small" data-action="add-todo">Add todo</button>`)}</section></div>
-  <section class="card agenda-card">${sectionTitle('Time, with intention', 'Everyday timetable', `<a href="#timetable" class="small-link">View timetable ↗</a>`)}${upcoming.length ? `<div class="agenda-list">${upcoming.map(item => `<div class="agenda-item"><time>${timeLabel(item.start)}</time><span></span><div><strong>${esc(item.title)}</strong><small>${timeLabel(item.start)} – ${timeLabel(item.end)}</small></div></div>`).join('')}</div>` : blank('An open day', 'Add a time block that repeats every day.', `<button class="button small" data-action="add-block">Add time block</button>`)}</section></div>`;
+  <section class="card agenda-card">${sectionTitle('Time, with intention', 'Today’s timetable', `<a href="#timetable" class="small-link">View timetable ↗</a>`)}${upcoming.length ? `<div class="agenda-list">${upcoming.map(item => `<div class="agenda-item"><time>${timeLabel(item.start)}</time><span></span><div><strong>${esc(item.title)}</strong><small>${timeLabel(item.start)} – ${timeLabel(item.end)}</small></div></div>`).join('')}</div>` : blank('An open day', 'Add a repeating time block for Monday through Saturday.', `<button class="button small" data-action="add-block">Add time block</button>`)}</section></div>`;
 }
 
 function activitiesPage() {
@@ -54,13 +55,13 @@ function todosPage() {
 }
 function todoSort(a,b) { return Number(Boolean(a.completedOn)) - Number(Boolean(b.completedOn)) || (a.dueDate || '9999').localeCompare(b.dueDate || '9999') || ({high:0,medium:1,low:2}[a.priority] - {high:0,medium:1,low:2}[b.priority]); }
 
-function blockRow(block) {
+function blockCell(block) {
   const link = block.linkType ? getState()[block.linkType === 'activity' ? 'activities' : 'todos'].find(item => item.id === block.linkId) : null;
-  return `<tr><th scope="row" class="table-time"><time>${timeLabel(block.start)}</time><span>${timeLabel(block.end)}</span></th><td class="table-plan"><strong>${esc(block.title)}</strong>${block.notes ? `<small>${esc(block.notes)}</small>` : ''}${link ? `<small>Linked ${block.linkType}: ${esc(link.name || link.title)}</small>` : ''}</td><td class="table-action"><button class="icon-button" data-action="edit-block" data-id="${esc(block.id)}" aria-label="Edit ${esc(block.title)}">⋯</button></td></tr>`;
+  return `<button type="button" class="grid-block" data-action="edit-block" data-id="${esc(block.id)}" aria-label="Edit ${esc(block.title)}, ${timeLabel(block.start)} to ${timeLabel(block.end)}"><strong>${esc(block.title)}</strong>${block.notes ? `<small>${esc(block.notes)}</small>` : ''}${link ? `<small>↗ ${esc(link.name || link.title)}</small>` : ''}</button>`;
 }
 function timetablePage() {
-  const blocks = [...getState().timetable].sort((a,b) => a.start.localeCompare(b.start) || a.end.localeCompare(b.end));
-  return `<div class="page"><div class="page-intro"><div><span class="eyebrow">A rhythm for every day</span><h1>Timetable</h1><p>One repeating daily plan. Each time block appears every day.</p></div><button class="button primary" data-action="add-block">＋ Add time block</button></div><section class="card schedule-card">${blocks.length ? `<div class="table-scroll"><table class="daily-table"><caption class="visually-hidden">Time blocks repeated every day</caption><thead><tr><th scope="col">Time</th><th scope="col">Plan</th><th scope="col">Edit</th></tr></thead><tbody>${blocks.map(blockRow).join('')}</tbody></table></div>` : blank('Your daily table is open', 'Add a time block and it will repeat every day.', `<button class="button small" data-action="add-block">Add time block</button>`)}</section></div>`;
+  const blocks = getState().timetable, rows = timetableRows(blocks);
+  return `<div class="page"><div class="page-intro"><div><span class="eyebrow">Your weekly rhythm</span><h1>Timetable</h1><p>Plan repeating blocks from Monday to Saturday. Tap a block to edit its days or time.</p></div><button class="button primary" data-action="add-block">＋ Add time block</button></div><section class="card schedule-card">${rows.length ? `<p class="grid-hint">Scroll sideways to see every day →</p><div class="table-scroll" role="region" tabindex="0" aria-label="Monday to Saturday timetable, scroll horizontally"><table class="weekly-table"><caption class="visually-hidden">Weekly timetable, time ranges by row and Monday through Saturday by column</caption><thead><tr><th scope="col">Time</th>${TIMETABLE_DAYS.map(day => `<th scope="col">${WEEKDAYS[day]}</th>`).join('')}</tr></thead><tbody>${rows.map(range => `<tr><th scope="row" class="table-time"><time>${timeLabel(range.start)}</time><span>to ${timeLabel(range.end)}</span></th>${TIMETABLE_DAYS.map(day => { const cellBlocks = blocksAt(blocks, range, day); return `<td>${cellBlocks.length ? cellBlocks.map(blockCell).join('') : '<span class="grid-empty" aria-label="No time block">—</span>'}</td>`; }).join('')}</tr>`).join('')}</tbody></table></div>` : blank('Your week is open', 'Add a time block and choose the weekdays it repeats.', `<button class="button small" data-action="add-block">Add time block</button>`)}</section></div>`;
 }
 
 function analyticsPage() {
@@ -120,8 +121,9 @@ function openTodo(item = null, bucket = 'today') {
 function openBlock(item = null) {
   dialog.dataset.editId = item?.id || '';
   const state = getState();
+  const days = item?.days || TIMETABLE_DAYS;
   const linkOptions = [ ...state.activities.filter(activeActivity).map(entry => `<option value="activity:${esc(entry.id)}" ${item?.linkType === 'activity' && item.linkId === entry.id ? 'selected' : ''}>Activity: ${esc(entry.name)}</option>`), ...state.todos.filter(activeTodo).map(entry => `<option value="todo:${esc(entry.id)}" ${item?.linkType === 'todo' && item.linkId === entry.id ? 'selected' : ''}>Todo: ${esc(entry.title)}</option>`) ].join('');
-  const fields = `${field('Block title *', `<input name="title" maxlength="120" required value="${esc(item?.title || '')}" placeholder="e.g. Deep work">`)}<p class="form-note">This block repeats every day.</p><div class="form-grid">${field('Start time *', `<input type="time" name="start" required value="${esc(item?.start || '')}">`)}${field('End time *', `<input type="time" name="end" required value="${esc(item?.end || '')}">`)}</div>${field('Linked item', `<select name="link"><option value="">None</option>${linkOptions}</select>`)}${field('Notes', `<textarea name="notes" rows="3" maxlength="2000" placeholder="Optional details">${esc(item?.notes || '')}</textarea>`)}`;
+  const fields = `${field('Block title *', `<input name="title" maxlength="120" required value="${esc(item?.title || '')}" placeholder="e.g. Deep work">`)}<div class="form-grid">${field('Start time *', `<input type="time" name="start" required value="${esc(item?.start || '')}">`)}${field('End time *', `<input type="time" name="end" required value="${esc(item?.end || '')}">`)}</div><fieldset class="day-fieldset"><legend>Repeat on *</legend><div class="day-picker">${TIMETABLE_DAYS.map(day => `<label><input type="checkbox" name="blockDays" value="${day}" aria-label="${WEEKDAYS[day]}" ${days.includes(day) ? 'checked' : ''}><span>${WEEKDAYS[day].slice(0, 1)}</span></label>`).join('')}</div><small>Choose at least one day, Monday through Saturday.</small></fieldset>${field('Linked item', `<select name="link"><option value="">None</option>${linkOptions}</select>`)}${field('Notes', `<textarea name="notes" rows="3" maxlength="2000" placeholder="Optional details">${esc(item?.notes || '')}</textarea>`)}`;
   openDialog(dialogShell('block', item ? 'Edit time block' : 'New time block', fields, Boolean(item)));
 }
 
@@ -145,8 +147,10 @@ function saveEditor(form) {
   } else if (kind === 'block') {
     const start = data.get('start'), end = data.get('end');
     if (end <= start) { notify('End time must be after start time.'); return; }
+    const days = data.getAll('blockDays').map(Number);
+    if (!days.length) { notify('Choose at least one repeat day.'); return; }
     const [linkType, linkId] = (data.get('link') || '').split(':');
-    update(state => { const item = editId ? state.timetable.find(entry => entry.id === editId) : null; const values = { title: data.get('title').trim(), notes: data.get('notes').trim(), start, end, linkType: linkType || '', linkId: linkId || '' }; if (item) Object.assign(item, values); else state.timetable.push({ id:id(), ...values }); });
+    update(state => { const item = editId ? state.timetable.find(entry => entry.id === editId) : null; const values = { title: data.get('title').trim(), notes: data.get('notes').trim(), start, end, days, linkType: linkType || '', linkId: linkId || '' }; if (item) Object.assign(item, values); else state.timetable.push({ id:id(), ...values }); });
   }
   closeDialog(); notify(editId ? 'Changes saved.' : 'Added to your planner.');
 }
