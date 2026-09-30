@@ -16,7 +16,7 @@ Open [http://localhost:4173](http://localhost:4173). The included server is for 
 
 1. Put this project in a GitHub repository and push it to the `main` branch.
 2. In **Settings → Pages**, set **Build and deployment → Source** to **GitHub Actions**.
-3. The included `.github/workflows/deploy.yml` publishes the static site on each push to `main`. You can also start it from the Actions tab.
+3. The included `.github/workflows/static.yml` publishes the static site on each push to `main`. You can also start it from the Actions tab.
 
 The manifest, service worker, and assets use relative URLs so the app works at either a user site root or a repository path such as `https://username.github.io/daymark/`. GitHub Pages serves over HTTPS, which enables service workers and the Notifications API.
 
