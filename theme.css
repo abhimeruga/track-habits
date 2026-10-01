@@ -252,3 +252,28 @@ main:focus, main:focus-visible { outline: 0 !important; }
   .grid-block strong { font-size: .7rem; }
   .grid-block small { font-size: .62rem; }
 }
+
+/* Compact, readable calendar summaries for the current and previous month. */
+.monthly-insights { margin-bottom: 19px; }
+.month-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-bottom: 14px; }
+.month-card { display: grid; gap: 13px; }
+.month-card-head, .month-rate, .month-breakdown, .month-report-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.month-card h3 { font-size: 1.06rem; margin: 0; }
+.month-rate strong { font-size: 2rem; line-height: 1; color: var(--green-dark); }
+.month-rate span, .month-breakdown, .monthly-archive p { color: var(--muted); font-size: .77rem; }
+.month-breakdown b { color: var(--ink); }
+.month-calendar { max-width: 370px; }
+.month-weekdays, .month-days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; text-align: center; }
+.month-weekdays { color: var(--muted); font-size: .65rem; font-weight: 700; margin-bottom: 6px; }
+.month-day { display: grid; place-items: center; min-height: 34px; border-radius: 8px; font-size: .72rem; font-weight: 700; background: var(--surface-2); color: var(--muted); }
+.month-day.complete { background: var(--mint); color: var(--green-dark); }
+.month-day.partial { background: var(--blue); color: var(--accent-blue); }
+.month-day.missed { background: var(--peach); color: var(--accent-red); }
+.month-day.unplanned { opacity: .68; }
+.month-report-list { display: grid; }
+.month-report-row { padding: 10px 0; border-top: 1px solid var(--line); }
+.month-report-row strong, .month-report-row small { display: block; }
+.month-report-row strong { font-size: .8rem; }
+.month-report-row small { color: var(--muted); font-size: .69rem; margin-top: 3px; }
+.monthly-archive .subtle { margin-bottom: 0; }
+@media (max-width: 760px) { .month-grid { grid-template-columns: 1fr; gap: 10px; } .month-card { gap: 10px; } .month-day { min-height: 31px; } }

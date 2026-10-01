@@ -3,7 +3,7 @@ import { TIMETABLE_DAYS } from './timetable.js';
 
 export const STORAGE_KEY = 'daymark:data:v1';
 export const ACTIVITY_COLORS = ['mint', 'blue', 'peach', 'lilac', 'gold', 'orchid', 'indigo', 'berry', 'teal', 'copper', 'black', 'grey', 'red'];
-export const emptyState = () => ({ version: 1, activities: [], todos: [], timetable: [], activityHistory: {}, settings: { theme: 'light', notificationsEnabled: false }, reminderLog: {} });
+export const emptyState = () => ({ version: 1, activities: [], todos: [], timetable: [], activityHistory: {}, settings: { theme: 'light', notificationsEnabled: false }, reminderLog: {}, monthlyReports: {} });
 const listeners = new Set();
 let state = emptyState();
 let persistenceError = '';
@@ -68,6 +68,10 @@ export function normalize(input) {
   base.settings.theme = ['system', 'light', 'dark'].includes(input.settings?.theme) ? input.settings.theme : 'light';
   base.settings.notificationsEnabled = Boolean(input.settings?.notificationsEnabled);
   if (input.reminderLog && typeof input.reminderLog === 'object') base.reminderLog = Object.fromEntries(Object.entries(input.reminderLog).filter(([key, value]) => typeof key === 'string' && key.length < 200 && value === true));
+  if (input.monthlyReports && typeof input.monthlyReports === 'object') for (const [month, record] of Object.entries(input.monthlyReports)) {
+    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month) || !record || typeof record !== 'object') continue;
+    base.monthlyReports[month] = { attemptedOn: validDate(record.attemptedOn), requestedOn: validDate(record.requestedOn), notifiedOn: validDate(record.notifiedOn) };
+  }
   return base;
 }
 

@@ -30,6 +30,10 @@ An app update replaces the shell cache without clearing localStorage. Existing v
 
 Activities have dated completion records and dated schedule revisions. Todos keep their completion date. Deleted activities and todos are hidden from the planner while their past records remain available to insights. Daily and weekly rates count items scheduled or due on those dates. Activity consistency covers the last 28 days; the current streak follows scheduled days and allows today to remain open until it is completed.
 
+**Insights** shows the current and previous calendar months with daily completion, habit and todo totals. The current month is calculated only through today. After each month with planned items closes, the app builds a detailed PDF with daily results, activity consistency, and todos due that month. On the first opening in the new month it requests a download and, if notifications are enabled and permitted, announces that the report is ready. **Insights → Monthly PDF reports** lets you download any completed month again, including months missed while the app was closed. Reports are generated offline from local history; the PDF itself is not kept in localStorage. Report attempt dates are included in JSON backups.
+
+A website cannot force a file into a particular folder or confirm that a browser saved it. Your browser typically uses Downloads, but its download settings may prompt or block automatic downloads. Use the manual button if needed. A static GitHub Pages app cannot run a reliable month-end job while fully closed, so generation and notification happen on the next opening after month end.
+
 The dashboard lists every active activity. Activities outside today's schedule stay visible but cannot be checked off that day. Activity colors include blue, black, grey, red, and the existing lavender and jewel accents. The timetable shows time ranges down the side and three columns: Monday–Friday, Saturday, and Sunday. Each block can repeat on selected days; blocks scheduled for only part of Monday–Friday show their day names in that column. Blocks saved before weekday selection retain their prior Monday–Saturday schedule, title, times, notes, and link.
 
 All data stays in this browser's localStorage. Clearing site data, using private browsing, or switching devices can remove it. Use **Settings → Export JSON** to download a backup and **Import JSON** to restore one. Import replaces all current data after confirmation; export first if you need to keep the current state.
@@ -42,7 +46,8 @@ Each activity and todo can have an optional browser notification, in-app sound, 
 
 - `src/main.js`: page templates, forms, and interactions.
 - `src/store.js`: localStorage schema, backup validation, and updates.
-- `src/date.js`, `src/analytics.js`, `src/timetable.js`: date, progress, and timetable calculations.
+- `src/date.js`, `src/analytics.js`, `src/monthly.js`, `src/timetable.js`: date, progress, monthly report, and timetable calculations.
+- `src/pdf.js`: offline monthly PDF generation and browser download request.
 - `src/notifications.js`: open-app reminders and in-app sound.
 - `styles.css`, `theme.css`: responsive layout and mixed-color light/dark themes.
 - `sw.js`, `manifest.webmanifest`, `icons/`: offline and installable app files.
