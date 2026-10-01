@@ -1,4 +1,4 @@
-const CACHE = 'daymark-shell-v3';
+const CACHE = 'daymark-shell-v5';
 const BASE = new URL('./', self.registration.scope);
 const SHELL = ['index.html', 'offline.html', 'styles.css', 'theme.css', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'src/main.js', 'src/store.js', 'src/date.js', 'src/analytics.js', 'src/notifications.js', 'src/timetable.js'].map(path => new URL(path, BASE).href);
 

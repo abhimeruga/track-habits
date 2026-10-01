@@ -1,6 +1,6 @@
 # Daymark
 
-A mobile-first daily planner and habit tracker with a lavender and purple theme. Daymark is a dependency-free static Progressive Web App that keeps all planner data in your browser's localStorage. It has no account, backend, or external service.
+A mobile-first daily planner and habit tracker with charcoal and grey surfaces, blue and red accents, and lavender highlights. Daymark is a dependency-free static Progressive Web App that keeps all planner data in your browser's localStorage. It has no account, backend, or external service.
 
 ## Run locally
 
@@ -30,7 +30,7 @@ An app update replaces the shell cache without clearing localStorage. Existing v
 
 Activities have dated completion records and dated schedule revisions. Todos keep their completion date. Deleted activities and todos are hidden from the planner while their past records remain available to insights. Daily and weekly rates count items scheduled or due on those dates. Activity consistency covers the last 28 days; the current streak follows scheduled days and allows today to remain open until it is completed.
 
-The dashboard lists every active activity. Activities outside today's schedule stay visible but cannot be checked off that day. The timetable is a weekly grid with Monday through Saturday across the top and time ranges down the side. Each block can repeat on selected weekdays. Blocks saved before weekday selection appear on all six days while retaining their title, times, notes, and link.
+The dashboard lists every active activity. Activities outside today's schedule stay visible but cannot be checked off that day. Activity colors include blue, black, grey, red, and the existing lavender and jewel accents. The timetable shows time ranges down the side and three columns: Monday–Friday, Saturday, and Sunday. Each block can repeat on selected days; blocks scheduled for only part of Monday–Friday show their day names in that column. Blocks saved before weekday selection retain their prior Monday–Saturday schedule, title, times, notes, and link.
 
 All data stays in this browser's localStorage. Clearing site data, using private browsing, or switching devices can remove it. Use **Settings → Export JSON** to download a backup and **Import JSON** to restore one. Import replaces all current data after confirmation; export first if you need to keep the current state.
 
@@ -44,6 +44,6 @@ Each activity and todo can have an optional browser notification, in-app sound, 
 - `src/store.js`: localStorage schema, backup validation, and updates.
 - `src/date.js`, `src/analytics.js`, `src/timetable.js`: date, progress, and timetable calculations.
 - `src/notifications.js`: open-app reminders and in-app sound.
-- `styles.css`, `theme.css`: responsive layout and lavender/purple themes.
+- `styles.css`, `theme.css`: responsive layout and mixed-color light/dark themes.
 - `sw.js`, `manifest.webmanifest`, `icons/`: offline and installable app files.
 - `scripts/generate-icons.mjs`: regenerate PNG app icons from the simple Daymark mark.

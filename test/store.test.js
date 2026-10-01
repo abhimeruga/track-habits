@@ -26,10 +26,17 @@ test('older time blocks fill all six weekdays without losing content', () => {
   assert.deepEqual(block,{id:'block-1',title:'Deep work',notes:'Project work',start:'09:00',end:'10:30',days:[1,2,3,4,5,6],linkType:'activity',linkId:'a'});
 });
 
-test('selected timetable days survive backup normalization', () => {
+test('selected timetable days including Sunday survive backup normalization', () => {
   const backup = emptyState();
   backup.timetable.push({id:'block-2',title:'Study',start:'11:00',end:'12:00',days:[1,3,3,6,0,9]});
-  assert.deepEqual(normalize(backup).timetable[0].days,[1,3,6]);
+  assert.deepEqual(normalize(backup).timetable[0].days,[0,1,3,6]);
+});
+
+test('new accent colors survive backup normalization', () => {
+  const backup = emptyState();
+  backup.activities.push({id:'a',name:'Gym',color:'teal',schedule:[{from:'2026-10-01',days:[1,2,3,4,5],paused:false}]});
+  backup.activities.push({id:'b',name:'Read',color:'red',schedule:[{from:'2026-10-01',days:[0],paused:false}]});
+  assert.deepEqual(normalize(backup).activities.map(item=>item.color),['teal','red']);
 });
 
 test('unreadable saved data is not overwritten by routine edits', () => {
